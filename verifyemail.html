@@ -12,13 +12,7 @@
       <h2>Verifying your email...</h2>
     </div>
 
-    <script type="module">
-      import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.8/+esm';
-
-      const supabase = createClient(
-        'https://nnyxiqfwpjltpoxsrwsy.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ueXhpcWZ3cGpsdHBveHNyd3N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ3MTI3NjAsImV4cCI6MjA1MDI4ODc2MH0.MjJIKdtntXzWkUKcjQ4fgO-JXSzxJuuTAm-IsUefKJ4'
-      );
+    <script>
 
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('token');
@@ -28,7 +22,9 @@
       const container = document.getElementById('content');
 
       if (errorDesc) {
-        container.innerHTML += `<p>❌ ${errorDesc}</p>`;
+        const p = document.createElement("p");
+        p.textContent = `❌ ${errorDesc}`;
+        container.appendChild(p);
       } else if (!token || type !== 'signup') {
         container.innerHTML += `<p>❌ Invalid verification link.</p>`;
       } else {
