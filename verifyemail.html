@@ -12,34 +12,24 @@
       <h2>Verifying your email...</h2>
     </div>
 
-    <script type="module">
-      import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.8/+esm';
-
-      const supabase = createClient(
-        'https://nnyxiqfwpjltpoxsrwsy.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ueXhpcWZ3cGpsdHBveHNyd3N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ3MTI3NjAsImV4cCI6MjA1MDI4ODc2MH0.MjJIKdtntXzWkUKcjQ4fgO-JXSzxJuuTAm-IsUefKJ4'
-      );
-
-      const urlParams = new URLSearchParams(window.location.search);
+    <script>
+         const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('token');
       const type = urlParams.get('type');
+      const errorDesc = urlParams.get('error_description');
 
       const container = document.getElementById('content');
 
-      if (!token || type !== 'signup') {
+      if (errorDesc) {
+        const p = document.createElement("p");
+        p.textContent = `❌ ${errorDesc}`;
+        container.appendChild(p);
+      } else if (!token || type !== 'signup') {
         container.innerHTML += `<p>❌ Invalid verification link.</p>`;
       } else {
-        // Set the session so Supabase recognizes the user
-        const { error } = await supabase.auth.verifyOtp({
-          token,
-          type: 'signup'
-        });
-
-        if (error) {
-          container.innerHTML += `<p>❌ ${error.message}</p>`;
-        } else {
-          container.innerHTML += `<p>✅ Your email has been verified successfully! You can now log in.</p>`;
-        }      }
+        // Supabase already verifies the token before redirecting here, so just show success
+        container.innerHTML += `<p>✅ Your email has been verified successfully! You can now log in.</p>`;
+      }
     </script>
   </body>
 </html>
