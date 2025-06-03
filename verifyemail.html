@@ -23,10 +23,13 @@
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('token');
       const type = urlParams.get('type');
+      const errorDesc = urlParams.get('error_description');
 
       const container = document.getElementById('content');
 
-      if (!token || type !== 'signup') {
+      if (errorDesc) {
+        container.innerHTML += `<p>❌ ${errorDesc}</p>`;
+      } else if (!token || type !== 'signup') {
         container.innerHTML += `<p>❌ Invalid verification link.</p>`;
       } else {
         // Supabase already verifies the token before redirecting here, so just show success
