@@ -7,12 +7,16 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <label class="theme-switch">
+      <input type="checkbox" id="theme-toggle" />
+      <span class="slider"></span>
+    </label>
     <div class="container" id="content">
       <img src="assets/logo.png" alt="RCM Logo" class="logo" />
       <h2 id="title">Verifying your email...</h2>
       <p id="status-message">Please wait while we confirm your account.</p>
     </div>
-
+    <script src="assets/theme.js"></script>
     <script>
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('token');
