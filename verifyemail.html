@@ -19,68 +19,65 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/index.min.js"></script>
     <script>
       (async () => {
-        // 2) Extract the token and type from the URL
+        // 2) Grab token/type from the URL
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get("token");
         const type = urlParams.get("type");
         const errorDesc = urlParams.get("error_description");
 
-        const title = document.getElementById("title");
-        const message = document.getElementById("status-message");
+        const titleEl = document.getElementById("title");
+        const messageEl = document.getElementById("status-message");
 
-        // 3) Replace these with your actual Supabase project URL & anon key:
+        // 3) Your Supabase project credentials:
         const SUPABASE_URL = "https://nnyxiqfwpjltpoxsrwsy.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ueXhpcWZ3cGpsdHBveHNyd3N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ3MTI3NjAsImV4cCI6MjA1MDI4ODc2MH0.MjJIKdtntXzWkUKcjQ4fgO-JXSzxJuuTAm-IsUefKJ4";
+        const SUPABASE_ANON_KEY =
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ueXhpcWZ3cGpsdHBveHNyd3N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ3MTI3NjAsImV4cCI6MjA1MDI4ODc2MH0.MjJIKdtntXzWkUKcjQ4fgO-JXSzxJuuTAm-IsUefKJ4";
 
+        // If Supabase appended an error in the URL, show that:
         if (errorDesc) {
-          // If Supabase appended an error message
-          title.textContent = "Verification Failed";
-          message.textContent = `❌ ${errorDesc}`;
+          titleEl.textContent = "Verification Failed";
+          messageEl.textContent = `❌ ${errorDesc}`;
           return;
         }
 
+        // If token is missing or “type” isn’t “signup,” bail out:
         if (!token || type !== "signup") {
-          // Missing token or wrong type
-          title.textContent = "Invalid Link";
-          message.textContent =
-            "❌ Invalid or expired verification link.";
+          titleEl.textContent = "Invalid Link";
+          messageEl.textContent = "❌ Invalid or expired verification link.";
           return;
         }
 
-        // 4) Show a “verifying…” state for a second or two
-        title.textContent = "Verifying…";
-        message.textContent =
-          "Please wait while we confirm your account.";
+        // Show a quick “Verifying…” state
+        titleEl.textContent = "Verifying…";
+        messageEl.textContent = "Please wait while we confirm your account.";
 
-        // 5) Create a Supabase client and call verifyOtp({ type: "signup", token })
-        const supabase = supabaseJs.createClient(
-          SUPABASE_URL,
-          SUPABASE_ANON_KEY
-        );
+        // 4) Instantiate the client (notice we use the global `supabase` here)
+        const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // 5) Call verifyOtp({ type: "signup", token })
         try {
-          const { error } = await supabase.auth.verifyOtp({
+          const { error } = await client.auth.verifyOtp({
             type: "signup",
             token,
           });
 
           if (error) {
-            // 6a) If Supabase returns an error (expired token, etc.)
-            title.textContent = "Verification Failed";
-            message.textContent = `❌ ${error.message}`;
+            // 6a) Supabase returned an error (expired token, etc.)
+            titleEl.textContent = "Verification Failed";
+            messageEl.textContent = `❌ ${error.message}`;
           } else {
             // 6b) Success!
-            title.textContent = "Email Verified";
-            message.innerHTML = `
+            titleEl.textContent = "Email Verified";
+            messageEl.innerHTML = `
               ✅ Your email has been verified successfully!<br>
               You can now <a href="/login">log in</a>.
             `;
           }
-        } catch (err) {
-          // 7) Unexpected network issue
-          title.textContent = "Verification Error";
-          message.textContent = "❌ Something went wrong. Please try again.";
-          console.error(err);
+        } catch (netErr) {
+          // 7) Any unexpected network error
+          titleEl.textContent = "Verification Error";
+          messageEl.textContent = "❌ Something went wrong. Please try again.";
+          console.error(netErr);
         }
       })();
     </script>
