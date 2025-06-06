@@ -9,32 +9,80 @@
   <body>
     <div class="container" id="content">
       <img src="assets/logo.png" alt="RCM Logo" class="logo" />
-      <h2 id="title">Verifying your email...</h2>
-      <p id="status-message">Please wait while we confirm your account.</p>
+      <h2 id="title">Verifying your email…</h2>
+      <p id="status-message">
+        Please wait while we confirm your account.
+      </p>
     </div>
 
+    <!-- 1) Load Supabase JS from CDN so we can call verifyOtp() -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/index.min.js"></script>
     <script>
-      const urlParams = new URLSearchParams(window.location.search);
-      const token = urlParams.get('token');
-      const type = urlParams.get('type');
-      const errorDesc = urlParams.get('error_description');
+      (async () => {
+        // 2) Extract the token and type from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get("token");
+        const type = urlParams.get("type");
+        const errorDesc = urlParams.get("error_description");
 
-      const title = document.getElementById('title');
-      const message = document.getElementById('status-message');
+        const title = document.getElementById("title");
+        const message = document.getElementById("status-message");
 
-      if (errorDesc) {
-        title.textContent = "Verification Failed";
-        message.textContent = `❌ ${errorDesc}`;
-      } else if (!token || type !== 'signup') {
-        title.textContent = "Invalid Link";
-        message.textContent = "❌ Invalid or expired verification link.";
-      } else {
-        // Delay message to allow Supabase time to process the verification
-        setTimeout(() => {
-          title.textContent = "Email Verified";
-          message.innerHTML = `✅ Your email has been verified successfully!<br>You can now <a href="/login">log in</a>.`;
-        }, 3000);
-      }
+        // 3) Replace these with your actual Supabase project URL & anon key:
+        const SUPABASE_URL = "https://nnyxiqfwpjltpoxsrwsy.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ueXhpcWZ3cGpsdHBveHNyd3N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ3MTI3NjAsImV4cCI6MjA1MDI4ODc2MH0.MjJIKdtntXzWkUKcjQ4fgO-JXSzxJuuTAm-IsUefKJ4";
+
+        if (errorDesc) {
+          // If Supabase appended an error message
+          title.textContent = "Verification Failed";
+          message.textContent = `❌ ${errorDesc}`;
+          return;
+        }
+
+        if (!token || type !== "signup") {
+          // Missing token or wrong type
+          title.textContent = "Invalid Link";
+          message.textContent =
+            "❌ Invalid or expired verification link.";
+          return;
+        }
+
+        // 4) Show a “verifying…” state for a second or two
+        title.textContent = "Verifying…";
+        message.textContent =
+          "Please wait while we confirm your account.";
+
+        // 5) Create a Supabase client and call verifyOtp({ type: "signup", token })
+        const supabase = supabaseJs.createClient(
+          SUPABASE_URL,
+          SUPABASE_ANON_KEY
+        );
+
+        try {
+          const { error } = await supabase.auth.verifyOtp({
+            type: "signup",
+            token,
+          });
+
+          if (error) {
+            // 6a) If Supabase returns an error (expired token, etc.)
+            title.textContent = "Verification Failed";
+            message.textContent = `❌ ${error.message}`;
+          } else {
+            // 6b) Success!
+            title.textContent = "Email Verified";
+            message.innerHTML = `
+              ✅ Your email has been verified successfully!<br>
+              You can now <a href="/login">log in</a>.
+            `;
+          }
+        } catch (err) {
+          // 7) Unexpected network issue
+          title.textContent = "Verification Error";
+          message.textContent = "❌ Something went wrong. Please try again.";
+          console.error(err);
+        }
+      })();
     </script>
   </body>
 </html>
