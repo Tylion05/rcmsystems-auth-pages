@@ -10,16 +10,15 @@
     <div class="container" id="content">
       <img src="assets/logo.png" alt="RCM Logo" class="logo" />
       <h2 id="title">Verifying your email…</h2>
-      <p id="status-message">
-        Please wait while we confirm your account.
-      </p>
+      <p id="status-message">Please wait while we confirm your account.</p>
     </div>
 
-    <!-- 1) Load Supabase JS from CDN so we can call verifyOtp() -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/index.min.js"></script>
-    <script>
+    <!-- ─── Use the ESM build of supabase-js ─── -->
+    <script type="module">
+      import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
       (async () => {
-        // 2) Grab token/type from the URL
+        // 1) Grab token/type (and any error_description) from the URL
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get("token");
         const type = urlParams.get("type");
@@ -28,45 +27,44 @@
         const titleEl = document.getElementById("title");
         const messageEl = document.getElementById("status-message");
 
-        // 3) Your Supabase project credentials:
+        // 2) Your Supabase project credentials:
         const SUPABASE_URL = "https://nnyxiqfwpjltpoxsrwsy.supabase.co";
-        const SUPABASE_ANON_KEY =
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ueXhpcWZ3cGpsdHBveHNyd3N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ3MTI3NjAsImV4cCI6MjA1MDI4ODc2MH0.MjJIKdtntXzWkUKcjQ4fgO-JXSzxJuuTAm-IsUefKJ4";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ueXhpcWZ3cGpsdHBveHNyd3N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ3MTI3NjAsImV4cCI6MjA1MDI4ODc2MH0.MjJIKdtntXzWkUKcjQ4fgO-JXSzxJuuTAm-IsUefKJ4";
 
-        // If Supabase appended an error in the URL, show that:
+        // 3) If Supabase appended "error_description" (e.g. expired token), show it:
         if (errorDesc) {
           titleEl.textContent = "Verification Failed";
           messageEl.textContent = `❌ ${errorDesc}`;
           return;
         }
 
-        // If token is missing or “type” isn’t “signup,” bail out:
+        // 4) If token is missing or the type isn't "signup", bail out:
         if (!token || type !== "signup") {
           titleEl.textContent = "Invalid Link";
           messageEl.textContent = "❌ Invalid or expired verification link.";
           return;
         }
 
-        // Show a quick “Verifying…” state
+        // 5) Show a quick "Verifying..." state
         titleEl.textContent = "Verifying…";
         messageEl.textContent = "Please wait while we confirm your account.";
 
-        // 4) Instantiate the client (notice we use the global `supabase` here)
-        const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // 6) Instantiate the client via ESM import
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // 5) Call verifyOtp({ type: "signup", token })
         try {
-          const { error } = await client.auth.verifyOtp({
+          // 7) Call the verifyOtp endpoint
+          const { error } = await supabase.auth.verifyOtp({
             type: "signup",
-            token,
+            token: token,
           });
 
           if (error) {
-            // 6a) Supabase returned an error (expired token, etc.)
+            // 8a) Supabase returned an error (expired token, etc.)
             titleEl.textContent = "Verification Failed";
             messageEl.textContent = `❌ ${error.message}`;
           } else {
-            // 6b) Success!
+            // 8b) Success!
             titleEl.textContent = "Email Verified";
             messageEl.innerHTML = `
               ✅ Your email has been verified successfully!<br>
@@ -74,7 +72,7 @@
             `;
           }
         } catch (netErr) {
-          // 7) Any unexpected network error
+          // 9) Any unexpected network error
           titleEl.textContent = "Verification Error";
           messageEl.textContent = "❌ Something went wrong. Please try again.";
           console.error(netErr);
