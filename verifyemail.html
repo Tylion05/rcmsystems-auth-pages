@@ -14,63 +14,56 @@
       <p id="status-message">Please wait while we confirm your account.</p>
     </div>
 
-    <!--
-      1) Switch to an ES‐module import of supabase-js v2.
-         This eliminates any “supabase is not defined” errors.
-    -->
     <script type="module">
-      import { createClient } from 
-        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+      import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
       (async () => {
-        // 2) Pull token & type from the URL
-        const params    = new URLSearchParams(window.location.search);
-        const token     = params.get("token");
-        const type      = params.get("type");
+        // Extract token, type, and email from the URL
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get("token");
+        const type = params.get("type");
+        const email = params.get("email");
         const errorDesc = params.get("error_description");
 
-        const titleEl   = document.getElementById("title");
+        const titleEl = document.getElementById("title");
         const messageEl = document.getElementById("status-message");
 
-        // 3) Your Supabase project URL + anon key
-        const SUPABASE_URL     = "https://nnyxiqfwpjltpoxsrwsy.supabase.co";
-        const SUPABASE_ANON_KEY = 
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ueXhpcWZ3cGpsdHBveHNyd3N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ3MTI3NjAsImV4cCI6MjA1MDI4ODc2MH0.MjJIKdtntXzWkUKcjQ4fgO-JXSzxJuuTAm-IsUefKJ4";
+        const SUPABASE_URL = "https://nnyxiqfwpjltpoxsrwsy.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ueXhpcWZ3cGpsdHBveHNyd3N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ3MTI3NjAsImV4cCI6MjA1MDI4ODc2MH0.MjJIKdtntXzWkUKcjQ4fgO-JXSzxJuuTAm-IsUefKJ4";
 
-        // 4) If Supabase added an “error_description” (expired token, etc.), show it:
+        // Handle Supabase error_description (e.g., expired token)
         if (errorDesc) {
-          titleEl.textContent   = "Verification Failed";
+          titleEl.textContent = "Verification Failed";
           messageEl.textContent = `❌ ${errorDesc}`;
           return;
         }
 
-        // 5) If there’s no token or the “type” isn’t exactly “signup,” bail:
-        if (!token || type !== "signup") {
-          titleEl.textContent   = "Invalid Link";
+        // Validate token, type, and email
+        if (!token || type !== "signup" || !email) {
+          titleEl.textContent = "Invalid Link";
           messageEl.textContent = "❌ Invalid or expired verification link.";
           return;
         }
 
-        // 6) Show a quick “Verifying…” state while we call supabase
-        titleEl.textContent   = "Verifying…";
+        // Show verifying state
+        titleEl.textContent = "Verifying…";
         messageEl.textContent = "Please wait while we confirm your account.";
 
-        // 7) Create a fresh supabase client instance
+        // Initialize Supabase client
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         try {
-          // 8) Call verifyOtp with exactly { type: "signup", token }
+          // Call verifyOtp with type, token, and email
           const { error } = await supabase.auth.verifyOtp({
-            type:  "signup",
+            type: "signup",
             token: token,
+            email: email
           });
 
           if (error) {
-            // 9a) If Supabase says “expired” or any other issue:
-            titleEl.textContent   = "Verification Failed";
+            titleEl.textContent = "Verification Failed";
             messageEl.textContent = `❌ ${error.message}`;
           } else {
-            // 9b) Otherwise we succeeded
             titleEl.textContent = "Email Verified";
             messageEl.innerHTML = `
               ✅ Your email has been verified successfully!<br>
@@ -78,8 +71,7 @@
             `;
           }
         } catch (networkError) {
-          // 10) Any unexpected network failure
-          titleEl.textContent   = "Verification Error";
+          titleEl.textContent = "Verification Error";
           messageEl.textContent = "❌ Something went wrong. Please try again.";
           console.error(networkError);
         }
