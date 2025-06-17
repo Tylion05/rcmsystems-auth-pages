@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Download Android App</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <img src="assets/logo.png" class="logo" alt="RCM Logo" />
+    <h2>Download the Latest Android App</h2>
+    <p>
+      Tap the button below to download the most recent version of the app.
+    </p>
+    <a id="download-btn" href="#" class="button" download disabled>
+      Loading…
+    </a>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabase = createClient(
+      'https://nnyxiqfwpjltpoxsrwsy.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ueXhpcWZ3cGpsdHBveHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ3MTI3NjAsImV4cCI6MjA1MDI4ODc2MH0.MjJIKdtntXzWkUKcjQ4fgO-JXSzxJuuTAm-IsUefKJ4'
+    );
+
+    async function setupDownload() {
+      const { data, error } = supabase
+        .storage
+        .from('android-builds')
+        .getPublicUrl('dispatch-app-latest.apk');
+
+      const btn = document.getElementById('download-btn');
+
+      if (error || !data.publicUrl) {
+        btn.textContent = 'Download unavailable';
+        btn.classList.add('disabled');
+        btn.removeAttribute('download');
+        return;
+      }
+
+      // Set link and enable the button
+      btn.href = `${data.publicUrl}?download=dispatch-app-latest.apk`;
+      btn.textContent = 'Download Latest APK';
+      btn.removeAttribute('disabled');
+    }
+
+    setupDownload();
+  </script>
+</body>
+</html>
