@@ -29,7 +29,7 @@
     async function setupDownload() {
       const { data, error } = supabase
         .storage
-        .from('android-builds')
+        .from('andriod-builds')
         .getPublicUrl('dispatch-app-latest.apk');
 
       const btn = document.getElementById('download-btn');
